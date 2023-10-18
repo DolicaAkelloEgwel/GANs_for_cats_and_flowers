@@ -15,36 +15,43 @@ class Flowers64Dataset(Dataset):
     """Dataset object for 64x64 pixel flower images."""
 
     def __init__(self, img_paths, mirror=True):
-        self.img_paths = img_paths
         self.size = 64
         self.mirror = mirror
 
+        self.images = [cv2.imread(image) for image in img_paths]
+        self._preprocess_images()
+
     def __len__(self):
-        return len(self.img_paths)
+        return len(self.images)
 
     def __getitem__(self, idx):
-        img_path = self.img_paths[idx]
-        img = cv2.imread(img_path)
-
-        # center crop
-        h, w = img.shape[:2]
-        min_side = min(h, w)
-        top, bot = (h - min_side) // 2, h - (h - min_side) // 2
-        left, right = (w - min_side) // 2, w - (w - min_side) // 2
-        img = img[top:bot, left:right, :]
+        img = self.images[idx]
 
         # mirror img with a 50% chance
         if self.mirror:
             if random.random() > 0.5:
                 img = img[:, ::-1, :]
 
-        # resize
-        img = cv2.resize(img, (self.size, self.size))
-
-        # normalize
-        img = preprocess_img(img)
-
         return torch.tensor(img.astype(np.float32))
+    
+    def _preprocess_images(self):
+        for i in range(len(self.images)):
+            # center crop
+            h, w = self.images[i].shape[:2]
+            if h != w:
+                min_side = min(h, w)
+                top, bot = (h - min_side) // 2, h - (h - min_side) // 2
+                left, right = (w - min_side) // 2, w - (w - min_side) // 2
+                self.images[i] = self.images[i][top:bot, left:right, :]
+
+            # resize
+            self.images[i] = cv2.resize(self.images[i], (self.size, self.size))
+
+            # normalize
+            self.images[i] = preprocess_img(self.images[i])
+
+        print(self.images[0].shape)
+
 
     @classmethod
     def create_from_scratch(cls, data_path):
