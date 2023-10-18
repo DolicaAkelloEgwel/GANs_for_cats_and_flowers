@@ -1,9 +1,13 @@
 import os
-import cv2
 import random
+import tarfile
+from urllib import request
+
+import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+
 from utils import preprocess_img
 
 
@@ -25,7 +29,7 @@ class Flowers64Dataset(Dataset):
         # center crop
         h, w = img.shape[:2]
         min_side = min(h, w)
-        top, bot = (h - min_side)//2, h - (h - min_side)//2
+        top, bot = (h - min_side) // 2, h - (h - min_side) // 2
         left, right = (w - min_side) // 2, w - (w - min_side) // 2
         img = img[top:bot, left:right, :]
 
@@ -52,23 +56,30 @@ class Flowers64Dataset(Dataset):
         return dataset
 
     @staticmethod
-    def prepare_flowers_data(data_path='./data'):
-        """Download and unzip flower data."""
-        flowers_data_path = os.path.join(data_path, 'flower_data')
-        if not os.path.exists(flowers_data_path):
-            os.makedirs(flowers_data_path)
-            # download
-            print('Downloading flower dataset...')
-            os.system('wget http://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz -P {}'
-                      .format(flowers_data_path))
-            # extract
-            print('Unzipping flower dataset...')
-            os.system('tar -C {} -xvzf {}'.format(
-                flowers_data_path, os.path.join(flowers_data_path, '102flowers.tgz')))
-        else:
-            print('Dataset already prepared in {}'.format(flowers_data_path))
+    def prepare_flowers_data(data_path="data"):
+        """_summary_
 
-        img_dir = os.path.join(flowers_data_path, 'jpg')
-        img_paths = [os.path.join(img_dir, f) for f in os.listdir(img_dir) if f.endswith('.jpg')]
+        Args:
+            data_path (str, optional): _description_. Defaults to "data".
+
+        Returns:
+            _type_: _description_
+        """
+        flowers_data_path = os.path.join(data_path, "flower_data")
+        if not os.path.exists(flowers_data_path) or not os.listdir(flowers_data_path):
+            os.makedirs(flowers_data_path, exist_ok=True)
+            print("Downloading flower dataset...")
+            local_filename, _ = request.urlretrieve(
+                "https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz"
+            )
+            flowers_dataset = tarfile.open(local_filename)
+            flowers_dataset.extractall(flowers_data_path)
+        else:
+            print("Dataset already prepared in {}".format(flowers_data_path))
+
+        img_dir = os.path.join(flowers_data_path, "jpg")
+        img_paths = [
+            os.path.join(img_dir, f) for f in os.listdir(img_dir) if f.endswith(".jpg")
+        ]
         img_paths.sort()
         return img_paths
