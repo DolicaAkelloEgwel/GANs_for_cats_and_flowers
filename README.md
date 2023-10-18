@@ -5,7 +5,7 @@ A few months ago I saw a [blog post](https://ajolicoeur.wordpress.com/cats/) abo
 
 ### Requirements
 - python 3.6
-- opencv-python 
+- opencv-python
 - numpy
 - torch **its probably a good idea to use 1.3.0 or higher**
 
