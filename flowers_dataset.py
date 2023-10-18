@@ -33,7 +33,7 @@ class Flowers64Dataset(Dataset):
                 img = img[:, ::-1, :]
 
         return torch.tensor(img.astype(np.float32))
-    
+
     def _preprocess_images(self):
         for i in range(len(self.images)):
             # center crop
@@ -51,7 +51,6 @@ class Flowers64Dataset(Dataset):
             self.images[i] = preprocess_img(self.images[i])
 
         print(self.images[0].shape)
-
 
     @classmethod
     def create_from_scratch(cls, data_path):
